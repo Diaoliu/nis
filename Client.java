@@ -1,6 +1,7 @@
 package de.unidue.iem.tdr.nis.client;
 
 import java.lang.Integer;
+import java.lang.String;
 
 /**
  * Diese Klasse ermoeglicht das Abrufen von Aufgaben vom Server und die
@@ -9,10 +10,10 @@ import java.lang.Integer;
  * Naehere Informationen zu den anderen Klassen und den einzelnen Aufgabentypen
  * entnehmen Sie bitte der entsprechenden Dokumentation im TMT und den Javadocs
  * zu den anderen Klassen.
- * 
+ *
  * @see Connection
  * @see TaskObject
- * 
+ *
  */
 public class Client implements TaskDefs {
 	private Connection con;
@@ -47,7 +48,7 @@ public class Client implements TaskDefs {
 
 	/**
 	 * Besteht die Verbindung zum Server?
-	 * 
+	 *
 	 * @return true, falls Verbindung bereit, andernfalls false
 	 */
 	public boolean isReady() {
@@ -69,23 +70,28 @@ public class Client implements TaskDefs {
 		for (int i = 0; i < tasks.length; i++) {
 			currentTask = con.getTask(tasks[i]);
 			switch (tasks[i]) {
-			case TASK_CLEARTEXT:
-				solution = currentTask.getStringArray(0);
-				break;
-			case TASK_XOR:
-				String arg1 = currentTask.getStringArray(0);
-				String arg2 = currentTask.getStringArray(1);
-				solution = xor(arg1, arg2);
-				break;
-			case TASK_MODULO:
-				int integer1 = currentTask.getIntArray(0);
-				int integer2 = currentTask.getIntArray(1);
-				solution = Integer.toString(integer1 % integer2);
-				break;
-			default:
-				currentTask = con.getTask(tasks[i]);
-				solution = "Nicht implementiert!";
-				break;
+				case TASK_CLEARTEXT:
+					solution = currentTask.getStringArray(0);
+					break;
+				case TASK_XOR:
+					String arg1 = currentTask.getStringArray(0);
+					String arg2 = currentTask.getStringArray(1);
+					solution = xor(arg1, arg2);
+					break;
+				case TASK_MODULO:
+					int integer1 = currentTask.getIntArray(0);
+					int integer2 = currentTask.getIntArray(1);
+					solution = Integer.toString(integer1 % integer2);
+					break;
+				case TASK_FACTORIZATION:
+					int n = currentTask.getIntArray(0);
+					String str = factor(n);
+					solution = str.substring(0, str.length() - 1);
+					break;
+				default:
+					currentTask = con.getTask(tasks[i]);
+					solution = "Nicht implementiert!";
+					break;
 			}
 
 			if (con.sendSolution(solution))
@@ -99,6 +105,15 @@ public class Client implements TaskDefs {
 		int i = Integer.parseInt(hex1,16);
 		int j = Integer.parseInt(hex2,16);
 		return Integer.toBinaryString(i^j);
+	}
+
+	private String factor(int n){
+		for(int i=2;i<=n;i++){
+			if(n % i == 0){
+				return i + "*" + factor(n / i);
+			}
+		}
+		return "";
 	}
 
 	public static void main(String[] args) {
