@@ -1,5 +1,7 @@
 package de.unidue.iem.tdr.nis.client;
 
+import java.lang.Integer;
+
 /**
  * Diese Klasse ermoeglicht das Abrufen von Aufgaben vom Server und die
  * Implementierung der dazugehoerigen Loesungen.
@@ -65,14 +67,25 @@ public class Client implements TaskDefs {
 	public void taskLoop() {
 		String solution;
 		for (int i = 0; i < tasks.length; i++) {
+			currentTask = con.getTask(tasks[i]);
 			switch (tasks[i]) {
 			case TASK_CLEARTEXT:
-				currentTask = con.getTask(tasks[i]);
 				solution = currentTask.getStringArray(0);
+				break;
+			case TASK_XOR:
+				String arg1 = currentTask.getStringArray(0);
+				String arg2 = currentTask.getStringArray(1);
+				solution = xor(arg1, arg2);
+				break;
+			case TASK_MODULO:
+				int integer1 = currentTask.getIntArray(0);
+				int integer2 = currentTask.getIntArray(1);
+				solution = Integer.toString(integer1 % integer2);
 				break;
 			default:
 				currentTask = con.getTask(tasks[i]);
 				solution = "Nicht implementiert!";
+				break;
 			}
 
 			if (con.sendSolution(solution))
@@ -80,6 +93,12 @@ public class Client implements TaskDefs {
 			else
 				System.out.println("Aufgabe " + tasks[i] + ": Loesung falsch");
 		}
+	}
+
+	private String xor(String hex1, String hex2){
+		int i = Integer.parseInt(hex1,16);
+		int j = Integer.parseInt(hex2,16);
+		return Integer.toBinaryString(i^j);
 	}
 
 	public static void main(String[] args) {
