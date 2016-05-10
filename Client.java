@@ -67,16 +67,16 @@ public class Client implements TaskDefs {
 	 */
 	public void taskLoop() {
 		String solution;
-		for (int i = 0; i < tasks.length; i++) {
-			currentTask = con.getTask(tasks[i]);
-			switch (tasks[i]) {
+		for (int task : tasks) {
+			currentTask = con.getTask(task);
+			switch (task) {
 				case TASK_CLEARTEXT:
 					solution = currentTask.getStringArray(0);
 					break;
 				case TASK_XOR:
 					String arg1 = currentTask.getStringArray(0);
 					String arg2 = currentTask.getStringArray(1);
-					solution = xor(arg1, arg2);
+					solution = TaskHandler.xor(arg1, arg2);
 					break;
 				case TASK_MODULO:
 					int integer1 = currentTask.getIntArray(0);
@@ -85,35 +85,37 @@ public class Client implements TaskDefs {
 					break;
 				case TASK_FACTORIZATION:
 					int n = currentTask.getIntArray(0);
-					String str = factor(n);
+					String str = TaskHandler.factor(n);
 					solution = str.substring(0, str.length() - 1);
 					break;
+				case TASK_VIGENERE:
+					String cipher = currentTask.getStringArray(0);
+					String key = currentTask.getStringArray(1);
+					solution = TaskHandler.vigenere(cipher, key);
+					break;
+				case TASK_DES_KEYSCHEDULE:
+					solution = TaskHandler.DESkeyschedule(currentTask);
+					break;
+				case TASK_DES_RBLOCK:
+					solution = TaskHandler.DESRBlock(currentTask);
+					break;
+				case TASK_DES_FEISTEL:
+					solution = TaskHandler.DESfeistel(currentTask);
+					break;
+				case TASK_DES_ROUND:
+					solution = TaskHandler.DEScomplete(currentTask);
+					break;
 				default:
-					currentTask = con.getTask(tasks[i]);
+					currentTask = con.getTask(task);
 					solution = "Nicht implementiert!";
 					break;
 			}
 
 			if (con.sendSolution(solution))
-				System.out.println("Aufgabe " + tasks[i] + ": Loesung korrekt");
+				System.out.println("Aufgabe " + task + ": Loesung korrekt");
 			else
-				System.out.println("Aufgabe " + tasks[i] + ": Loesung falsch");
+				System.out.println("Aufgabe " + task + ": Loesung falsch");
 		}
-	}
-
-	private String xor(String hex1, String hex2){
-		int i = Integer.parseInt(hex1,16);
-		int j = Integer.parseInt(hex2,16);
-		return Integer.toBinaryString(i^j);
-	}
-
-	private String factor(int n){
-		for(int i=2;i<=n;i++){
-			if(n % i == 0){
-				return i + "*" + factor(n / i);
-			}
-		}
-		return "";
 	}
 
 	public static void main(String[] args) {
