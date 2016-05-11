@@ -145,7 +145,7 @@ public class DES {
 
     public void cipherBits(){
         int[] permutedBits = bitInitialPermutation();
-        bitRotation(permutedBits);
+        rotateComplete(permutedBits);
         bitFinalPermutation();
     }
 
@@ -161,8 +161,7 @@ public class DES {
         for (int i = 0; i < 16; i++) {
             cBlock = shiftBits(cBlock, LEFT_SHIFT[i]);
             dBlock = shiftBits(dBlock, LEFT_SHIFT[i]);
-            System.arraycopy(cBlock, 0, subkeys[i], 0, 28);
-            System.arraycopy(dBlock, 0, subkeys[i], 28, 28);
+            subkeys[i] = mergeArray(cBlock, dBlock);
         }
         return  subkeys;
     }
@@ -182,26 +181,32 @@ public class DES {
         return permutation(this.clearBits, IP);
     }
 
-    public void bitRotation(int[] permutedBits){
-        bitLeftBlock[0]  = Arrays.copyOfRange(permutedBits, 0, 32);
-        bitRightBlock[0] = Arrays.copyOfRange(permutedBits, 32, 64);
+    public void rotateComplete(int[] permutedBits){
+        int[] left  = Arrays.copyOfRange(permutedBits, 0, 32);
+        int[] right = Arrays.copyOfRange(permutedBits, 32, 64);
         for (int i = 1; i <= 16; i++) {
-            bitLeftBlock[i] = bitRightBlock[i -1];
-            bitRightBlock[i] = xor(
-                    bitLeftBlock[i - 1],
-                    feistel(bitRightBlock[i - 1], keySchedule[i - 1])
-            );
+            int[] next = rotateOneRound(left, right, i);
+            left  = Arrays.copyOfRange(next, 0, 32);
+            right = Arrays.copyOfRange(next, 32, 64);
+            this.bitLeftBlock[i] = left.clone();
+            this.bitRightBlock[i] = right.clone();
         }
     }
 
-    public int[] feistel(int[] rightBlock, int[] key){
+    public int[] rotateOneRound(int[] left, int[] right, int round){
+        int[] nextLeft = right.clone();
+        int[] nextRight = feistel(left, right, keySchedule[round - 1]);
+        return mergeArray(nextLeft, nextRight);
+    }
+
+    public int[] feistel(int[] leftblock, int[] rightBlock, int[] key){
         int[] bits = expansion(rightBlock);
         bits = xor(bits, key);
         bits = sBox(bits);
-        return permutation(bits, P);
+        return xor(leftblock, permutation(bits, P));
     }
 
-    public int[] sBox(int[] bits){ // input 48 bit
+    private int[] sBox(int[] bits){ // input 48 bit
         int[] rightBlock = new int[32];
         for (int i = 0; i < 48; i+=6) {
             int row = bits[i] * 2
@@ -219,7 +224,7 @@ public class DES {
         return rightBlock;
     }
 
-    public void bitFinalPermutation(){
+    private void bitFinalPermutation(){
         System.arraycopy(bitRightBlock[16], 0, cipherBits, 0, 32);
         System.arraycopy(bitLeftBlock[16], 0, cipherBits, 32, 32);
         cipherBits = permutation(cipherBits, FP);
@@ -244,7 +249,7 @@ public class DES {
         return  shifted;
     }
 
-    public int[] expansion(int[] bits){
+    private int[] expansion(int[] bits){
         // expand 32 bit to 48 bit using table E
         int[] permuted = new int[48];
         for (int i = 0; i < 48; i++) {
@@ -253,11 +258,19 @@ public class DES {
         return permuted;
     }
 
-    public int[] xor(int[] first, int[] second){
+    private int[] xor(int[] first, int[] second){
         for (int i = 0; i < first.length; i++) {
             first[i] = first[i] ^ second[i];
         }
         return first;
+    }
+
+    private int[] mergeArray(int[] fir, int[] sec){
+        int len = fir.length;
+        int[] res = new int[len * 2];
+        System.arraycopy(fir, 0, res, 0, len);
+        System.arraycopy(sec, 0, res, len, len);
+        return res;
     }
 
 }

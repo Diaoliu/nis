@@ -1,6 +1,5 @@
 package de.unidue.iem.tdr.nis.client;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 
 public class TaskHandler {
@@ -37,48 +36,46 @@ public class TaskHandler {
     // Aufgabe 6 DES: Rundenschluessel-Berechnung
     public static String DESkeyschedule(TaskObject task){
         int round  = task.getIntArray(0);
-        int[] key = stringToBit(task.getStringArray(0));
+        int[] key = string2bit(task.getStringArray(0));
         DES des = new DES(new int[64], key);
         des.generateKey();
-        return bitToString(des.keySchedule[round - 1]);
+        return bit2string(des.keySchedule[round - 1]);
     }
 
     // Aufgabe 7. DES: R-Block-Berechnung
     public static String DESRBlock(TaskObject task){
-        int[] bits = stringToBit(task.getStringArray(0));
+        int[] bits = string2bit(task.getStringArray(0));
         int round  = task.getIntArray(0);
         DES des = new DES(bits, new int[64]);
         des.generateKey();
         des.cipherBits();
-        return bitToString(des.bitRightBlock[round]);
+        return bit2string(des.bitRightBlock[round]);
     }
 
     // Aufgabe 8. DES: Feistel-Funktion
     public static String DESfeistel(TaskObject task){
-        int[] bits  = stringToBit(task.getStringArray(0));
-        int[] key   = stringToBit(task.getStringArray(1));
+        int[] bits  = string2bit(task.getStringArray(0));
+        int[] key   = string2bit(task.getStringArray(1));
         int[] left  = Arrays.copyOfRange(bits, 0, 32);
         int[] right = Arrays.copyOfRange(bits, 32, 64);
         DES des = new DES(new int[64], new int[64]);
-        return bitToString(des.xor(left, des.feistel(right, key)));
+        return bit2string(des.feistel(left, right, key));
 
     }
 
     // Aufgabe 9. DES: Berechnung einer Runde
     public static String DEScomplete(TaskObject task){
-        int[] bits  = stringToBit(
-                task.getStringArray(0) + task.getStringArray(1)
-        );
-        int[] key   = stringToBit(task.getStringArray(2));
+        int[] left  = string2bit(task.getStringArray(0));
+        int[] right  = string2bit(task.getStringArray(1));
+        int[] key   = string2bit(task.getStringArray(2));
         int round = task.getIntArray(0);
-        DES des = new DES(bits, key);
+        DES des = new DES(new int[64], key);
         des.generateKey();
-        des.cipherBits();
-        return  bitToString(des.bitLeftBlock[round -1]) + bitToString(des.bitRightBlock[round -1]);
+        return  bit2string(des.rotateOneRound(left, right, round));
     }
 
     // Utils
-    private static int[] stringToBit(String str){
+    private static int[] string2bit(String str){
         int len   = str.length();
         int[] arr = new int[len];
         for (int i = 0; i < len; i++) {
@@ -87,7 +84,7 @@ public class TaskHandler {
         return arr;
     }
 
-    private static String bitToString(int[] arr){
+    private static String bit2string(int[] arr){
         String str = "";
         for (int anArr : arr) {
             str += Integer.toString(anArr);
