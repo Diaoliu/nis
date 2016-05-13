@@ -74,6 +74,22 @@ public class TaskHandler {
         return  bit2string(des.rotateOneRound(left, right, round));
     }
 
+    //Aufgabe 10. AES: Multiplikation im Raum GF8
+    public static String AESmultiplication(TaskObject task){
+        String str1 = task.getStringArray(0);
+        String str2 = task.getStringArray(1);
+        return AES.toHexString(
+                AES.parseHexInt(str1) * AES.parseHexInt(str2) % 256
+        );
+    }
+
+    //Aufgabe 11. AES: Schl¨¹ssel-Generierung
+    public static String AESgeneralKey (TaskObject task) {
+        String key = task.getStringArray(0);
+        String[] keys = AES.generalkeySchedule(key, 2);
+        return String.format("%S_%s_%S", key, keys[1], keys[2]);
+    }
+
     // Utils
     private static int[] string2bit(String str){
         int len   = str.length();

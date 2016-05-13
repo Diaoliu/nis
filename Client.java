@@ -105,6 +105,12 @@ public class Client implements TaskDefs {
 				case TASK_DES_ROUND:
 					solution = TaskHandler.DEScomplete(currentTask);
 					break;
+				case TASK_AES_GF8:
+					solution = TaskHandler.AESmultiplication(currentTask);
+					break;
+				case TASK_AES_KEYEXPANSION:
+					solution = TaskHandler.AESgeneralKey(currentTask);
+					break;
 				default:
 					currentTask = con.getTask(task);
 					solution = "Nicht implementiert!";
