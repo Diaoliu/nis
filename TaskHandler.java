@@ -74,20 +74,120 @@ public class TaskHandler {
         return  bit2string(des.rotateOneRound(left, right, round));
     }
 
-    //Aufgabe 10. AES: Multiplikation im Raum GF8
+    // Aufgabe 10. AES: Multiplikation im Raum GF8
     public static String AESmultiplication(TaskObject task){
         String str1 = task.getStringArray(0);
         String str2 = task.getStringArray(1);
-        return AES.toHexString(
-                AES.parseHexInt(str1) * AES.parseHexInt(str2) % 256
-        );
+        int hex = AES.parseHexInt(str1) * AES.parseHexInt(str2);
+        if (hex >= 0xff)
+            hex ^= 0x11b;
+        return AES.toHexString(hex);
     }
 
-    //Aufgabe 11. AES: Schl¨¹ssel-Generierung
+    // Aufgabe 11. AES: Schl¨¹ssel-Generierung
     public static String AESgeneralKey (TaskObject task) {
         String key = task.getStringArray(0);
         String[] keys = AES.generalkeySchedule(key, 2);
         return String.format("%S_%s_%S", key, keys[1], keys[2]);
+    }
+
+    // Aufgabe 12. AES: MixColumns()
+    public static String AESmixColumns (TaskObject task) {
+        String text = task.getStringArray(0);
+        return AES.mixColumns(text);
+    }
+
+    // Aufgabe 13. AES: SubBytes(), ShiftRows() und MixColumns()
+    public static String AEStransform (TaskObject task) {
+        String text = task.getStringArray(0);
+        return AES.mixColumns(
+                AES.shiftRows(
+                        AES.subWords(text)
+                ));
+    }
+
+    // Aufgabe 14. AES: Initiale & zwei weitere Runden
+    public static String AES3rounds (TaskObject task) {
+        String text = task.getStringArray(0);
+        String key  = task.getStringArray(1);
+        String[] roundKeys = AES.generalkeySchedule(key, 2);
+        String initalRound = AES.addRoundkey(text, key);
+        String firstRound = AES.addRoundkey(
+                AES.mixColumns(AES.shiftRows(AES.subWords(initalRound))),
+                roundKeys[1]
+        );
+        String secondRound = AES.addRoundkey(
+                AES.mixColumns(AES.shiftRows(AES.subWords(firstRound))),
+                roundKeys[2]
+        );
+        return String.format("%S_%s_%S", initalRound, firstRound, secondRound);
+    }
+
+    // Aufgabe 15. RC4: Generation Loop
+    public static String RC4Loop (TaskObject task) {
+        String[] state   = task.getStringArray(0).split("_");
+        String text      = task.getStringArray(1);
+        int[] stateTable = new int[state.length];
+        for (int i = 0; i < state.length; i++) {
+            stateTable[i] = Integer.parseInt(state[i]);
+        }
+        int[] loop   = RC4.generateLoop(stateTable, text);
+        return bit2string(loop);
+    }
+
+    // Aufgabe 16. RC4: Keyscheduling
+    public static String RC4keySchedule (TaskObject task) {
+        String[] key = task.getStringArray(0).split("_");
+        int[] initKey = new int[key.length];
+        for (int i = 0; i < key.length; i++) {
+            initKey[i] = Integer.parseInt(key[i]);
+        }
+        int[] state = RC4.generatekeySchedule(initKey);
+        String stateTable = "";
+        for (int index : state) {
+            stateTable += index + "_";
+        }
+        return stateTable.substring(0, stateTable.length() - 1);
+    }
+
+    // Aufgabe 17. RC4: Verschluesselung
+    public static String RC4encryption (TaskObject task) {
+        String[] key = task.getStringArray(0).split("_");
+        int[] initKey = new int[key.length];
+        for (int i = 0; i < key.length; i++) {
+            initKey[i] = Integer.parseInt(key[i]);
+        }
+        String text = task.getStringArray(1);
+        return RC4.encryption(initKey, text);
+    }
+
+    // Aufgabe 18. Diffie-Hellman
+    public static String diffieHellman (TaskObject task, Connection con) {
+        int p = task.getIntArray(0);
+        int g = task.getIntArray(1);
+        double B = task.getDoubleArray(0);
+        int A = g % p;
+        con.sendMoreParams(task, new String[] { String.valueOf(A) });
+        int key = (int)B % p;
+        String cipher = "";
+        String text = task.getStringArray(0);
+        for (String str : text.split("_")) {
+            cipher += (char)(Integer.valueOf(str) ^ key);
+        }
+        return cipher;
+    }
+
+    // Aufgabe 19. RSA: Verschl¨¹sselung
+    public static String RSAencryption(TaskObject task) {
+        int n = task.getIntArray(0);
+        int e = task.getIntArray(1);
+        char[] clearText = task.getStringArray(0).toCharArray();
+        String cipher = "";
+        for (char word : clearText) {
+            long result = power((int)word, e, n) % n;
+            cipher += result + "_";
+        }
+        return cipher.substring(0, cipher.length() - 1);
     }
 
     // Utils
@@ -106,5 +206,13 @@ public class TaskHandler {
             str += Integer.toString(anArr);
         }
         return str;
+    }
+
+    /* @return n ^ e % mod, e.g 7 ^ 23 mod 143 = 2 */
+    private static int power(int n, int exp, int mod){
+        if (exp != 1)
+            return power(n, exp -1, mod) * n % mod;
+        else
+            return n % mod;
     }
 }

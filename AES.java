@@ -2,11 +2,11 @@ package de.unidue.iem.tdr.nis.client;
 
 public class AES {
 
-    private static final int[] MATRIX = {
-            2, 3, 1, 1,
-            1, 2, 3, 1,
-            1, 1, 2, 3,
-            3, 1, 1, 2
+    private static final int[][] C = {
+            { 0x2, 0x3, 0x1, 0x1 },
+            { 0x1, 0x2, 0x3, 0x1 },
+            { 0x1, 0x1, 0x2, 0x3 },
+            { 0x3, 0x1, 0x1, 0x2 }
     };
 
     private static final int[][] S_BOX = {
@@ -28,21 +28,25 @@ public class AES {
             {0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16}
     };
 
-    private static final String[] RCON = {
-            "01000000",
-            "02000000",
-            "04000000",
-            "08000000",
-            "10000000",
-            "20000000",
-            "4000000",
-            "80000000",
-            "1b000000",
-            "36000000"
+    private static final Object[][] RCON = {
+            { 0x01, 0x00, 0x00, 0x00 },
+            { 0x02, 0x00, 0x00, 0x00 },
+            { 0x04, 0x00, 0x00, 0x00 },
+            { 0x08, 0x00, 0x00, 0x00 },
+            { 0x10, 0x00, 0x00, 0x00 },
+            { 0x20, 0x00, 0x00, 0x00 },
+            { 0x40, 0x00, 0x00, 0x00 },
+            { 0x80, 0x00, 0x00, 0x00 },
+            { 0x1b, 0x00, 0x00, 0x00 },
+            { 0x36, 0x00, 0x00, 0x00 }
     };
 
-//    public static int multi2hex(int fir, int sec){
-//    }
+    private static final int[] SR = {
+             1,  2,  3,  4,
+             6,  7,  8,  5,
+            11, 12,  9, 10,
+            16, 13, 14, 15,
+    };
 
     public static int parseHexInt(String str){
         // str must be between "00" and "FF"
@@ -94,21 +98,21 @@ public class AES {
         Seperate key into 4 parts, eachone is word (4 bytes)
         e.g. 2b7e1516 28aed2a6 abf71588 09cf4f3c
         */
-        String word1 = key.substring(0, 8);
-        String word2 = key.substring(8, 16);
-        String word3 = key.substring(16, 24);
-        String word4 = key.substring(24);
+        String[][] words = splitText(key);
         /* Generate First Column, W0 XOR W4 XOR Rcon */
-        String nextWord1 = generalFirstCol(word1, word4, nth);
-        String nextWord2 = xorWord(word2, nextWord1);
-        String nextWord3 = xorWord(word3, nextWord2);
-        String nextWord4 = xorWord(word4, nextWord3);
-        return nextWord1 + nextWord2 + nextWord3 + nextWord4;
+        String[] next1 = generalFirstCol(words[0], words[3], nth);
+        String[] next2 = xorWord(words[1], next1);
+        String[] next3 = xorWord(words[2], next2);
+        String[] next4 = xorWord(words[3], next3);
+        return  joinByte(next1) +
+                joinByte(next2) +
+                joinByte(next3) +
+                joinByte(next4);
     }
 
-    private static String generalFirstCol (String w0, String w4, int nth){
-        String rotWord = rotWord(w4);
-        String tmp = xorWord(w0, rotWord);
+    private static String[] generalFirstCol (String[] w0, String[] w4, int nth){
+        String[] rotWord = rotWord(w4);
+        String[] tmp = xorWord(w0, rotWord);
         return xorWord(tmp, RCON[nth - 1]);
     }
 
@@ -116,46 +120,113 @@ public class AES {
         /* Split 128 bit Text or Key into
         * a Matrix, each item is a byte HEX String */
         String[][] matrix = new String[4][4];
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                matrix[i][j] = text.substring( 8 * i + 2 * j, 8 * i + 2 * j + 2);
-            }
+        int len = text.length();
+        for (int i = 0; i < len; i += 2) {
+            matrix[i / 8][( i % 8 ) / 2] = text.substring(i, i + 2);
         }
         return matrix;
     }
 
-    private static String xorWord (String word1, String word2) {
-        String word = "";
+    private static String[] xorWord (String[] word1, Object[] word2) {
+        String[] word = new String[4];
         for (int i = 0; i < 4; i++) {
-            word += xorByte(
-                    word1.substring(2 * i, 2 * i + 2),
-                    word2.substring(2 * i, 2 * i + 2)
-            );
+            word[i] = xorByte(word1[i], word2[i]);
         }
         return word;
     }
 
-    private static String xorByte (String byte1, String byte2) {
-        return toHexString(parseHexInt(byte1) ^ parseHexInt(byte2));
+    public static String xorByte (Object byte1, Object byte2) {
+        int i, j;
+        i = ( byte1 instanceof String) ?  parseHexInt((String) byte1) : (int) byte1;
+        j = ( byte2 instanceof String) ?  parseHexInt((String) byte2) : (int) byte2;
+        return toHexString(i ^ j);
     }
 
-    private static String rotWord (String word) {
+    private static String[] rotWord (String[] word) {
         // input such as "2a6c7605"
-        word = shiftString(word, 2);
-        String rotWord = "";
-        int len = word.length();
-        for (int i = 0; i < len; i += 2) {
-            rotWord += subByte(word.substring(i, i + 2));
+        word = shiftWord(word, 1);
+        String[] rotWord = new String[word.length];
+        for (int i = 0; i < word.length; i++) {
+            rotWord[i] = subByte(word[i]);
         }
         return rotWord;
     }
 
-    //    public static String mixColumns (String text) {
-//        /* Input text as 128 bits */
-//
-//    }
+    private static String joinByte (String[] bytes) {
+        String word = "";
+        for (String abyte : bytes){
+            word += abyte;
+        }
+        return word;
+    }
 
-    private static String subByte (String key) {
+    public static String mixColumns (String text) {
+        /* Input text as 128 bits */
+        String[][] words = splitText(text);
+        String mixed = "";
+        for (String[] word : words) {
+            mixed += GMultipl(word);
+        }
+        return mixed;
+    }
+
+    public static String GMultipl (String[] col) {
+        String mixed = "";
+        for (int i = 0; i < 4; i++) {
+            int res = 0;
+            for (int j = 0; j < col.length ; j++) {
+                int hex = parseHexInt(col[j]);
+                int c = C[i][j];
+                if (c == 3)
+                    hex = hex * 2 ^ hex;
+                else
+                    hex *= c;
+                if (hex >= 0xff)
+                    hex ^= 0x11b;
+                res ^= hex;
+            }
+            mixed += toHexString(res);
+        }
+
+        return mixed;
+    }
+
+    public static String subWords (String text) {
+        int len = text.length();
+        String subWord = "";
+        for (int i = 0; i < len; i += 2) {
+            String byteStr = text.substring(i, i + 2);
+            subWord += AES.subByte(byteStr);
+        }
+        return subWord;
+    }
+
+    public static String shiftRows (String text) {
+        String[][] words = splitText(text);
+        String shifted = "";
+        for (int i = 0; i < 16; i++) {
+            int row = i % 4;
+            int col = i / 4;
+            int pos = SR[row * 4 + col] - 1;
+            shifted += words[pos % 4][pos / 4];
+        }
+        return shifted;
+    }
+
+    public static String addRoundkey (String text, String key) {
+        String[][] words = splitText(text);
+        String[][] keys  = splitText(key);
+        String added     = "";
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                added += xorByte(words[i][j], keys[i][j]);
+            }
+        }
+        return added;
+    }
+
+
+    public static String subByte (String key) {
         // String from "00" to "ff"
         int row = hexChar2int(key.charAt(0));
         int col = hexChar2int(key.charAt(1));
@@ -163,8 +234,11 @@ public class AES {
         return toHexString(hex);
     }
 
-    private static String shiftString (String str, int offset) {
-        return str.substring(offset) + str.substring(0, offset);
+    private static String[] shiftWord (String[] word, int offset) {
+        String[] shifted = new String[word.length];
+        for (int i = 0; i < word.length; i++) {
+            shifted[i] = word[( i + offset ) % word.length];
+        }
+        return shifted;
     }
-
 }

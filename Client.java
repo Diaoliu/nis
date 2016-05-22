@@ -111,6 +111,30 @@ public class Client implements TaskDefs {
 				case TASK_AES_KEYEXPANSION:
 					solution = TaskHandler.AESgeneralKey(currentTask);
 					break;
+				case TASK_AES_MIXCOLUMNS:
+					solution = TaskHandler.AESmixColumns(currentTask);
+					break;
+                case TASK_AES_TRANSFORMATION:
+                    solution = TaskHandler.AEStransform(currentTask);
+                    break;
+                case TASK_AES_3ROUNDS:
+					solution = TaskHandler.AES3rounds(currentTask);
+					break;
+				case TASK_RC4_LOOP:
+					solution = TaskHandler.RC4Loop(currentTask);
+					break;
+				case TASK_RC4_KEYSCHEDULE:
+					solution = TaskHandler.RC4keySchedule(currentTask);
+					break;
+				case TASK_RC4_ENCRYPTION:
+					solution = TaskHandler.RC4encryption(currentTask);
+					break;
+				case TASK_DIFFIEHELLMAN:
+					solution = TaskHandler.diffieHellman(currentTask, con);
+					break;
+				case TASK_RSA_ENCRYPTION:
+					solution = TaskHandler.RSAencryption(currentTask);
+					break;
 				default:
 					currentTask = con.getTask(task);
 					solution = "Nicht implementiert!";
@@ -119,8 +143,12 @@ public class Client implements TaskDefs {
 
 			if (con.sendSolution(solution))
 				System.out.println("Aufgabe " + task + ": Loesung korrekt");
-			else
-				System.out.println("Aufgabe " + task + ": Loesung falsch");
+			else {
+                // if output is wrong, print out the parameters of current task
+                currentTask.printTO();
+				System.out.println(solution);
+                System.out.println("Aufgabe " + task + ": Loesung falsch");
+            }
 		}
 	}
 
