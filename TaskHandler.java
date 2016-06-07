@@ -85,7 +85,7 @@ public class TaskHandler {
         return Kit.dec2hex(hex);
     }
 
-    // Aufgabe 11. AES: Schl¨¹ssel-Generierung
+    // Aufgabe 11. AES: Schluessel-Generierung
     public static String AESgeneralKey (TaskObject task) {
         String key = task.getStringArray(0);
         String[] keys = AES.generalkeySchedule(key, 2);
