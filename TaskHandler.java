@@ -1,17 +1,18 @@
 package de.unidue.iem.tdr.nis.client;
 
 import java.util.Arrays;
+import java.util.Random;
 
 public class TaskHandler {
     // Aufgabe 2 XOR
     public static String xor(String hex1, String hex2){
-        int i = Integer.parseInt(hex1,16);
-        int j = Integer.parseInt(hex2,16);
+        int i = Kit.hex2dec(hex1);
+        int j = Kit.hex2dec(hex2);
         return Integer.toBinaryString(i^j);
     }
     // Aufgabe 4 Faktorisierung
     public static String factor(int n){
-        for(int i=2;i<=n;i++){
+        for(int i = 2; i <= n; i++){
             if(n % i == 0){
                 return i + "*" + factor(n / i);
             }
@@ -81,7 +82,7 @@ public class TaskHandler {
         int hex = AES.parseHexInt(str1) * AES.parseHexInt(str2);
         if (hex >= 0xff)
             hex ^= 0x11b;
-        return AES.toHexString(hex);
+        return Kit.dec2hex(hex);
     }
 
     // Aufgabe 11. AES: Schl¨¹ssel-Generierung
@@ -163,12 +164,13 @@ public class TaskHandler {
 
     // Aufgabe 18. Diffie-Hellman
     public static String diffieHellman (TaskObject task, Connection con) {
-        int p = task.getIntArray(0);
-        int g = task.getIntArray(1);
+        int p    = task.getIntArray(0);
+        int g    = task.getIntArray(1);
         double B = task.getDoubleArray(0);
-        int A = g % p;
+        int a = getRandomInt(1, p - 2);
+        int A = power(g, a, p);
         con.sendMoreParams(task, new String[] { String.valueOf(A) });
-        int key = (int)B % p;
+        int key = power((int)B, a, p);
         String cipher = "";
         String text = task.getStringArray(0);
         for (String str : text.split("_")) {
@@ -177,8 +179,8 @@ public class TaskHandler {
         return cipher;
     }
 
-    // Aufgabe 19. RSA: Verschl¨¹sselung
-    public static String RSAencryption(TaskObject task) {
+    // Aufgabe 19. RSA: Verschluesselung
+    public static String RSAencryption (TaskObject task) {
         int n = task.getIntArray(0);
         int e = task.getIntArray(1);
         char[] clearText = task.getStringArray(0).toCharArray();
@@ -188,6 +190,36 @@ public class TaskHandler {
             cipher += result + "_";
         }
         return cipher.substring(0, cipher.length() - 1);
+    }
+
+    // Aufgabe 20. RSA: Entschluesselung
+    public static String RASdecryption (TaskObject task)  {
+        /* public key (143, 23)
+        *  private key (143, 47)*/
+        String[] cipher = task.getStringArray(0).split("_");
+        String clearText = "";
+        for (String num : cipher) {
+            int i = Integer.valueOf(num);
+            clearText += (char)power(i, 47, 143);
+        }
+        return clearText;
+    }
+
+    // 21. ElGamal: Verschluesselung
+    public static String ElGamalencryption (TaskObject task)  {
+        int p     = task.getIntArray(0);
+        int alpha = task.getIntArray(1);
+        int beta  = task.getIntArray(2);
+        // random integer 1 <= k <= p - 2
+        int k = getRandomInt(1, p - 2);
+        int key = power(beta, k, p);
+        int y1  = power(alpha, k, p);
+        String cipher = Kit.dec2hex(y1) + "_";
+        char[] clearText = task.getStringArray(0).toCharArray();
+        for (char m : clearText) {
+            cipher += Kit.dec2hex((int)m * key % p) + "_";
+        }
+        return  cipher.substring(0, cipher.length() - 1);
     }
 
     // Utils
@@ -209,10 +241,15 @@ public class TaskHandler {
     }
 
     /* @return n ^ e % mod, e.g 7 ^ 23 mod 143 = 2 */
-    private static int power(int n, int exp, int mod){
+    public static int power(int n, int exp, int mod){
         if (exp != 1)
             return power(n, exp -1, mod) * n % mod;
         else
             return n % mod;
+    }
+    public static int getRandomInt(int start, int interval) {
+        // return start <= value <= start + interval - 1
+        Random r = new Random();
+        return r.nextInt(interval) + start;
     }
 }

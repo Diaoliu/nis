@@ -68,7 +68,13 @@ public class Client implements TaskDefs {
 	public void taskLoop() {
 		String solution;
 		for (int task : tasks) {
-			currentTask = con.getTask(task);
+			// for task 20, it need to send parameter to the server
+			// with public key (143, 23)
+			if (task == TaskDefs.TASK_RSA_DECRYPTION)
+				currentTask = con.getTask(task, new String[]{"143", "23"});
+			else
+				currentTask = con.getTask(task);
+
 			switch (task) {
 				case TASK_CLEARTEXT:
 					solution = currentTask.getStringArray(0);
@@ -135,6 +141,12 @@ public class Client implements TaskDefs {
 				case TASK_RSA_ENCRYPTION:
 					solution = TaskHandler.RSAencryption(currentTask);
 					break;
+				case TASK_RSA_DECRYPTION:
+					solution = TaskHandler.RASdecryption(currentTask);
+					break;
+				case TASK_ELGAMAL_ENCRYPTION:
+					solution = TaskHandler.ElGamalencryption(currentTask);
+					break;
 				default:
 					currentTask = con.getTask(task);
 					solution = "Nicht implementiert!";
@@ -145,9 +157,11 @@ public class Client implements TaskDefs {
 				System.out.println("Aufgabe " + task + ": Loesung korrekt");
 			else {
                 // if output is wrong, print out the parameters of current task
+				System.out.println("-------------");
+				System.out.println("Aufgabe " + task + ": Loesung falsch");
                 currentTask.printTO();
-				System.out.println(solution);
-                System.out.println("Aufgabe " + task + ": Loesung falsch");
+				System.out.println("Sended solution is :" + solution);
+				System.out.println("-------------");
             }
 		}
 	}

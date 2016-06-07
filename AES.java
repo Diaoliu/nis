@@ -110,8 +110,8 @@ public class AES {
                 joinByte(next4);
     }
 
-    private static String[] generalFirstCol (String[] w0, String[] w4, int nth){
-        String[] rotWord = rotWord(w4);
+    private static String[] generalFirstCol (String[] w0, String[] w3, int nth){
+        String[] rotWord = rotWord(w3);
         String[] tmp = xorWord(w0, rotWord);
         return xorWord(tmp, RCON[nth - 1]);
     }
