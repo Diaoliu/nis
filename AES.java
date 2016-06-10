@@ -48,40 +48,6 @@ public class AES {
             16, 13, 14, 15,
     };
 
-    public static int parseHexInt(String str){
-        // str must be between "00" and "FF"
-        str = str.toLowerCase();
-        int sum = 0;
-        sum += 16 * hexChar2int(str.charAt(0))
-                + hexChar2int(str.charAt(1));
-        return sum;
-    }
-
-    public static String toHexString (int dec) {
-        // input must between 0 and 255
-        char tens  = int2hexChar(dec / 16);
-        char units = int2hexChar(dec % 16);
-        return String.format("%c%c", tens, units);
-    }
-
-    private static int hexChar2int(char c){
-        int charPos = c - '0';
-        if (charPos > 9)
-            /* Position according ACSCII
-              '0' => 48, 'a' => 97 */
-            charPos -= 39;
-        return charPos;
-    }
-
-    private static char int2hexChar (int i) {
-        char c;
-        if (i <= 9)
-            c = (char) (48 + i);
-        else
-            c = (char) (97 + i  - 10);
-        return c;
-    }
-
     public static String[] generalkeySchedule (String key, int round) {
         int len = round + 1;
         String[] roundKey = new String[len];
@@ -121,8 +87,13 @@ public class AES {
         * a Matrix, each item is a byte HEX String */
         String[][] matrix = new String[4][4];
         int len = text.length();
-        for (int i = 0; i < len; i += 2) {
-            matrix[i / 8][( i % 8 ) / 2] = text.substring(i, i + 2);
+        try {
+            for (int i = 0; i < len; i += 2) {
+                matrix[i / 8][( i % 8 ) / 2] = text.substring(i, i + 2);
+            }
+        } catch (ArrayIndexOutOfBoundsException e){
+            System.out.println(text.length());
+            e.printStackTrace();
         }
         return matrix;
     }
@@ -137,9 +108,9 @@ public class AES {
 
     public static String xorByte (Object byte1, Object byte2) {
         int i, j;
-        i = ( byte1 instanceof String) ?  parseHexInt((String) byte1) : (int) byte1;
-        j = ( byte2 instanceof String) ?  parseHexInt((String) byte2) : (int) byte2;
-        return toHexString(i ^ j);
+        i = ( byte1 instanceof String) ?  ToolKit.hex2dec((String) byte1) : (int) byte1;
+        j = ( byte2 instanceof String) ?  ToolKit.hex2dec((String) byte2) : (int) byte2;
+        return ToolKit.dec2hex(i ^ j);
     }
 
     private static String[] rotWord (String[] word) {
@@ -175,17 +146,17 @@ public class AES {
         for (int i = 0; i < 4; i++) {
             int res = 0;
             for (int j = 0; j < col.length ; j++) {
-                int hex = parseHexInt(col[j]);
+                int hex = ToolKit.hex2dec(col[j]);
                 int c = C[i][j];
                 if (c == 3)
-                    hex = hex * 2 ^ hex;
-                else
-                    hex *= c;
-                if (hex >= 0xff)
-                    hex ^= 0x11b;
+                    hex = hex << 1 ^ hex;
+                else if ( c == 2)
+                    hex = hex << 1;
+                if (hex > 0xFF)
+                    hex ^= 0x11B;
                 res ^= hex;
             }
-            mixed += toHexString(res);
+            mixed += ToolKit.dec2hex(res);
         }
 
         return mixed;
@@ -225,13 +196,13 @@ public class AES {
         return added;
     }
 
-
     public static String subByte (String key) {
         // String from "00" to "ff"
-        int row = hexChar2int(key.charAt(0));
-        int col = hexChar2int(key.charAt(1));
+        key = key.toUpperCase();
+        int row = ToolKit.DIGITS.indexOf(key.charAt(0));
+        int col = ToolKit.DIGITS.indexOf(key.charAt(1));
         int hex = S_BOX[row][col];
-        return toHexString(hex);
+        return ToolKit.dec2hex(hex);
     }
 
     private static String[] shiftWord (String[] word, int offset) {

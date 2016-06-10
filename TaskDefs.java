@@ -1,7 +1,7 @@
 package de.unidue.iem.tdr.nis.client;
 
 /**
- * Stellt Konstanten fuer die verschiedenen Aufgabentypen zur Verfuegung.
+ * Stellt Konstanten für die verschiedenen Aufgabentypen zur Verfügung.
  * 
  */
 public interface TaskDefs {

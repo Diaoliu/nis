@@ -2,9 +2,9 @@ package de.unidue.iem.tdr.nis.client;
 
 /**
  * Diese Klasse beinhaltet alle relevanten Informationen, die der Client
- * benoetigt, um eine Aufgabe zu loesen.
+ * benötigt, um eine Aufgabe zu lösen.
  * <p>
- * Bitte veraendern Sie diese Klasse nicht.
+ * Bitte verändern Sie diese Klasse nicht.
  */
 public class TaskObject {
 	/**
@@ -43,10 +43,10 @@ public class TaskObject {
 	}
 
 	/**
-	 * Fuellt das String-Array
+	 * Füllt das String-Array
 	 * 
 	 * @param s
-	 *            einzufuegender String
+	 *            einzufügender String
 	 * @param pos
 	 *            Position im Array
 	 */
@@ -90,10 +90,10 @@ public class TaskObject {
 	}
 
 	/**
-	 * Fuellt das Int-Array
+	 * Füllt das Int-Array
 	 * 
 	 * @param i
-	 *            einzufuegende Zahl
+	 *            einzufügende Zahl
 	 * @param pos
 	 *            Position im Array
 	 */
@@ -137,10 +137,10 @@ public class TaskObject {
 	}
 
 	/**
-	 * Fuellt das Double-Array
+	 * Füllt das Double-Array
 	 * 
 	 * @param d
-	 *            einzufuegende Zahl
+	 *            einzufügende Zahl
 	 * @param pos
 	 *            Position im Array
 	 */

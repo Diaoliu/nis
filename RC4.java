@@ -51,12 +51,7 @@ public class RC4 {
     public static String toBinaryString (int num) {
         /* Input as ascii code, e.g f = 102
         * convert to 1 byte bit String, e.g. 01100110 */
-        String bits = "";
-        while (num != 0) {
-            int bit = num % 2;
-            bits = bit + bits;
-            num /= 2;
-        }
+        String bits =  ToolKit.toBinaryString(num);
         int padding = 8 - bits.length();
         bits = "00000000".substring(0, padding) + bits;
         return bits;

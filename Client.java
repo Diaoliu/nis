@@ -68,12 +68,28 @@ public class Client implements TaskDefs {
 	public void taskLoop() {
 		String solution;
 		for (int task : tasks) {
-			// for task 20, it need to send parameter to the server
-			// with public key (143, 23)
-			if (task == TaskDefs.TASK_RSA_DECRYPTION)
-				currentTask = con.getTask(task, new String[]{"143", "23"});
-			else
-				currentTask = con.getTask(task);
+			switch (task) {
+				// Part for the tasks, those need to send more parameter to the server
+				case TASK_RSA_DECRYPTION:
+					int[] keyPair = RSA.generateKey();
+					String n = Integer.toString(keyPair[0]);
+					String e = Integer.toString(keyPair[1]);
+					currentTask = con.getTask(task, new String[]{ n, e });
+					solution = TaskHandler.RASdecryption(currentTask, keyPair);
+					break;
+				case TASK_ELGAMAL_DECRYPTION:
+					int[] key    = ELGamal.generateKey();
+					String p     =  Integer.toString(key[0]);
+					String alpha =  Integer.toString(key[1]);
+					String beta  =  Integer.toString(key[2]);
+					currentTask = con.getTask(task, new String[]{p, alpha, beta});
+					solution = TaskHandler.ELGamalDecryption(currentTask, new int[] {key[0], key[3]});
+					break;
+				default:
+					currentTask = con.getTask(task);
+					solution = "Nicht implementiert!";
+					break;
+			}
 
 			switch (task) {
 				case TASK_CLEARTEXT:
@@ -142,10 +158,11 @@ public class Client implements TaskDefs {
 					solution = TaskHandler.RSAencryption(currentTask);
 					break;
 				case TASK_RSA_DECRYPTION:
-					solution = TaskHandler.RASdecryption(currentTask);
 					break;
 				case TASK_ELGAMAL_ENCRYPTION:
-					solution = TaskHandler.ElGamalencryption(currentTask);
+					solution = TaskHandler.ELGamalEncryption(currentTask);
+					break;
+				case TASK_ELGAMAL_DECRYPTION:
 					break;
 				default:
 					currentTask = con.getTask(task);

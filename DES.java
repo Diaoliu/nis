@@ -272,5 +272,4 @@ public class DES {
         System.arraycopy(sec, 0, res, len, len);
         return res;
     }
-
 }

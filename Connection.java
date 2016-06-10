@@ -14,13 +14,13 @@ import java.util.Formatter;
 import java.util.StringTokenizer;
 
 /**
- * Diese Klasse ermoeglicht die Kommunikation mit dem Server. Verbindungsauf und
- * -abbau sind Ihnen in der Klasse {@link Client} schon vorgegeben. Fuer Sie sind
+ * Diese Klasse ermöglicht die Kommunikation mit dem Server. Verbindungsauf und
+ * -abbau sind Ihnen in der Klasse {@link Client} schon vorgegeben. Für Sie sind
  * die Methoden {@link #sendSolution(String solution)}, {@link #getTask(int taskId)},
  * {@link #getTask(int taskId, String[] params)} und
  * {@link #sendMoreParams(TaskObject task, String[] params)} relevant.
  * <p>
- * Bitte veraendern Sie diese Klasse nicht.
+ * Bitte verändern Sie diese Klasse nicht.
  * 
  * @see Client
  * 
@@ -121,7 +121,7 @@ public class Connection {
 	 * Ruft gezielt eine Aufgabe vom Server ab.
 	 * 
 	 * @param taskId
-	 *            Identifikator der gewuenschten Aufgabe
+	 *            Identifikator der gewünschten Aufgabe
 	 * @return Aufgabe in Form von TaskObject
 	 */
 	protected TaskObject getTask(int taskId) {
@@ -138,7 +138,7 @@ public class Connection {
 	 * Ruft gezielt eine Aufgabe vom Server ab und sendet dabei Parameter mit.
 	 * 
 	 * @param taskId
-	 *            Identifikator der gewuenschten Aufgabe
+	 *            Identifikator der gewünschten Aufgabe
 	 * @param params
 	 *            Parameterliste
 	 * @return Aufgabe in Form von TaskObject
@@ -172,10 +172,10 @@ public class Connection {
 	}
 
 	/**
-	 * Sendet eine Loesung an den Server
+	 * Sendet eine Lösung an den Server
 	 * 
 	 * @param solution
-	 *            Loesung des Studierenden
+	 *            Lösung des Studierenden
 	 */
 	protected boolean sendSolution(String solution) {
 		String[] params = new String[1];
@@ -188,7 +188,7 @@ public class Connection {
 	}
 
 	/**
-	 * Empfaengt eine Antwort vom Server. Der Inhalt wird in this.input
+	 * Empfängt eine Antwort vom Server. Der Inhalt wird in this.input
 	 * gespeichert, wenn der Server keinen Fehler meldet. Ansonsten wird die
 	 * Fehlermeldung ausgegeben und die Verbindung vom Server beendet.
 	 */
@@ -319,10 +319,10 @@ public class Connection {
 	/**
 	 * Erzeugt aus den eingehenden Daten die Inhaltsarrays eines TasksObjects
 	 * Die Funktion geht davon aus, dass sie nur aufgerufen wird, wenn wirklich
-	 * ein TaskObject uebertragen wurde
+	 * ein TaskObject übertragen wurde
 	 * 
 	 * @param task
-	 *            TaskObject, das mit Daten gefuellt werden soll
+	 *            TaskObject, das mit Daten gefüllt werden soll
 	 */
 	private void parseTaskObject(TaskObject task) {
 		for (int i = 1; i < input.length;) {
